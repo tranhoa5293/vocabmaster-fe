@@ -1,0 +1,5 @@
+{
+  "name": "Vocab Master",
+  "description": "A high-performance vocabulary learning system using the SM-2 Spaced Repetition algorithm, featuring multiple learning modes like Flashcards, Matching, Multiple Choice, and Input tests.",
+  "requestFramePermissions": []
+}

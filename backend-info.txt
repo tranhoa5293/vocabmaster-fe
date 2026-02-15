@@ -1,0 +1,60 @@
+
+HƯỚNG DẪN XÂY DỰNG BACKEND SPRING BOOT 3
+
+1. Cấu hình Maven (pom.xml):
+- spring-boot-starter-web
+- spring-boot-starter-data-jpa
+- spring-boot-starter-security
+- spring-boot-starter-oauth2-client
+- postgresql
+- jjwt (dùng cho JWT)
+
+2. Cấu trúc Entity (PostgreSQL Schema):
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    google_id VARCHAR(255) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE collections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100),
+    description TEXT
+);
+
+CREATE TABLE user_vocabulary (
+    user_id UUID REFERENCES users(id),
+    vocab_id UUID REFERENCES vocabulary(id),
+    ease_factor FLOAT DEFAULT 2.5,
+    interval INTEGER DEFAULT 0,
+    repetition INTEGER DEFAULT 0,
+    next_review_at TIMESTAMP,
+    PRIMARY KEY (user_id, vocab_id)
+);
+
+3. Logic SM-2 trong Java:
+
+public UserVocabulary updateSRS(UserVocabulary uv, int score) {
+    if (score < 3) {
+        uv.setRepetition(0);
+        uv.setInterval(1);
+    } else {
+        uv.setRepetition(uv.getRepetition() + 1);
+        if (uv.getRepetition() == 1) uv.setInterval(1);
+        else if (uv.getRepetition() == 2) uv.setInterval(6);
+        else uv.setInterval((int)Math.round(uv.getInterval() * uv.getEaseFactor()));
+
+        float newEf = uv.getEaseFactor() + (0.1f - (5 - score) * (0.08f + (5 - score) * 0.02f));
+        uv.setEaseFactor(Math.max(1.3f, newEf));
+    }
+    uv.setNextReviewAt(LocalDateTime.now().plusDays(uv.getInterval()));
+    return uv;
+}
+
+4. Bảo mật OAuth2:
+Cấu hình Spring Security để redirect người dùng tới Google, sau đó trong SuccessHandler, tạo JWT và redirect về Frontend kèm token.

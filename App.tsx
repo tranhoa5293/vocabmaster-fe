@@ -1,0 +1,362 @@
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Header from './components/Header';
+import Dashboard from './components/Dashboard';
+import Login from './components/Login';
+import FlashcardMode from './components/FlashcardMode';
+import MultipleChoiceMode from './components/MultipleChoiceMode';
+import InputMode from './components/InputMode';
+import MatchMode from './components/MatchMode';
+import SpeedLearnMode from './components/SpeedLearnMode';
+import CollectionBrowser from './components/CollectionBrowser';
+import CollectionModal from './components/CollectionModal';
+import { LearningMode, UserVocabulary, Vocabulary, SessionStep, Collection, Lesson, User, Language, ActiveLearner, LeaderboardData } from './types';
+import { api } from './services/api';
+import { translations } from './utils/i18n';
+
+type AppState = LearningMode | 'session-summary' | 'loading' | 'login';
+
+const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [currentMode, setCurrentMode] = useState<AppState>('loading');
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [lang, setLang] = useState<Language>(() => {
+    return (localStorage.getItem('app_lang') as Language) || 'vi';
+  });
+  
+  const [stats, setStats] = useState({ totalLearning: 0, dueCount: 0, masteredCount: 0 });
+  const [progressPage, setProgressPage] = useState({ items: [], currentPage: 0, totalPages: 0 });
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [activeLearners, setActiveLearners] = useState<ActiveLearner[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardData>({ topUsers: [], userScore: 0 });
+  
+  const [sessionSteps, setSessionSteps] = useState<SessionStep[]>([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [activeStudySet, setActiveStudySet] = useState<Vocabulary[]>([]);
+  
+  const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson', lessonId?: string, collectionId?: string } | null>(null);
+  const [lastSessionResults, setLastSessionResults] = useState<{correct: number, total: number} | null>(null);
+
+  const t = translations[lang];
+  const isInitialized = useRef(false);
+
+  // Routing Logic - Purely handles state synchronization based on URL
+  const handleRoute = useCallback((forceUser?: User | null) => {
+    const path = window.location.pathname;
+    const token = api.getToken();
+    const currentUser = forceUser !== undefined ? forceUser : user;
+
+    // Handle Logout
+    if (path === '/logout') {
+      api.logout();
+      setUser(null);
+      window.history.pushState({}, '', '/login');
+      setCurrentMode('login');
+      return;
+    }
+
+    // Handle Login route
+    if (path === '/login') {
+      if (token && currentUser) {
+        window.history.replaceState({}, '', '/dashboard');
+        setCurrentMode('dashboard');
+        setSelectedCollectionId(null);
+      } else {
+        setCurrentMode('login');
+      }
+      return;
+    }
+
+    // Auth Guard: If no token and not on login, go to login
+    if (!token && path !== '/login') {
+      window.history.replaceState({}, '', '/login');
+      setCurrentMode('login');
+      return;
+    }
+
+    if (path === '/' || path === '/dashboard') {
+      setCurrentMode('dashboard');
+      setSelectedCollectionId(null);
+    } else if (path === '/library') {
+      setCurrentMode('browse');
+      setSelectedCollectionId(null);
+    } else if (path.startsWith('/library/')) {
+      const parts = path.split('/');
+      const id = parts[2];
+      setCurrentMode('browse');
+      setSelectedCollectionId(id || null);
+    } else {
+      // Redirect to home if route is unknown
+      window.history.replaceState({}, '', '/dashboard');
+      setCurrentMode('dashboard');
+      setSelectedCollectionId(null);
+    }
+  }, [user]);
+
+  const navigateTo = useCallback((path: string) => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+      handleRoute();
+    }
+  }, [handleRoute]);
+
+  const refreshDashboardData = async (page: number = 0) => {
+    try {
+      const [studyStats, cols] = await Promise.all([
+        api.getStudyStats(),
+        api.getCollections()
+      ]);
+      setStats(studyStats);
+      setCollections(cols);
+
+      const [progress, learners, lbData] = await Promise.all([
+        api.getUserProgress(page, 10),
+        api.getActiveLearners(),
+        api.getLeaderboard('weekly')
+      ]);
+      setProgressPage({
+        items: progress.content || progress.items || [],
+        currentPage: page,
+        totalPages: progress.totalPages || 1
+      });
+      setActiveLearners(learners);
+      setLeaderboard(lbData);
+    } catch (err) {
+      console.error("Dashboard refresh failed", err);
+    }
+  };
+
+  const initApp = async () => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+
+    if (tokenFromUrl) {
+      api.setToken(tokenFromUrl);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const savedToken = api.getToken();
+    if (!savedToken) {
+      handleRoute(null);
+      return;
+    }
+
+    try {
+      const currentUser = await api.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        await refreshDashboardData();
+        handleRoute(currentUser);
+      } else {
+        api.logout();
+        handleRoute(null);
+      }
+    } catch (err) {
+      console.error("Auth initialization failed:", err);
+      api.logout();
+      handleRoute(null);
+    }
+  };
+
+  // Run initial app setup once
+  useEffect(() => {
+    initApp();
+  }, []);
+
+  // Handle URL changes (browser back/forward)
+  useEffect(() => {
+    const onPopState = () => handleRoute();
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [handleRoute]);
+
+  useEffect(() => {
+    localStorage.setItem('app_lang', lang);
+  }, [lang]);
+
+  const startSession = async (modeOrSteps: LearningMode | SessionStep[], lessonId?: string) => {
+    try {
+      setCurrentMode('loading');
+      
+      const modeString = Array.isArray(modeOrSteps) ? modeOrSteps[0].mode : modeOrSteps;
+      const dueVocabs = await api.getDueVocabulary(10, lessonId, modeString);
+      
+      if (dueVocabs.length === 0) {
+        alert(t.no_reviews_due);
+        navigateTo('/dashboard');
+        return;
+      }
+
+      setActiveStudySet(dueVocabs);
+      if (Array.isArray(modeOrSteps)) {
+        setSessionSteps(modeOrSteps);
+        setCurrentStepIndex(0);
+        setCurrentMode(modeOrSteps[0].mode);
+      } else {
+        setSessionSteps([{ mode: modeOrSteps, title: modeOrSteps.toUpperCase() }]);
+        setCurrentStepIndex(0);
+        setCurrentMode(modeOrSteps);
+      }
+    } catch (err) {
+      alert(t.error_loading);
+      navigateTo('/dashboard');
+    }
+  };
+
+  const handleFinishStep = async (results: Array<{ vocabId: string; score: number }>) => {
+    let correctCount = 0;
+    try {
+      results.forEach(r => {
+        if (r.score >= 3) correctCount++;
+      });
+
+      await api.updateSRSBatch(results);
+
+      await refreshDashboardData(progressPage.currentPage);
+
+      if (currentStepIndex < sessionSteps.length - 1) {
+        const nextIndex = currentStepIndex + 1;
+        setCurrentStepIndex(nextIndex);
+        setCurrentMode(sessionSteps[nextIndex].mode);
+      } else {
+        setLastSessionResults({ correct: correctCount, total: results.length });
+        setCurrentMode('session-summary');
+      }
+    } catch (err) {
+      console.error("Update SRS batch failed:", err);
+      alert(t.update_failed);
+    }
+  };
+
+  if (currentMode === 'loading') return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-bold animate-pulse">{t.syncing}</p>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (currentMode) {
+      case 'login':
+        return <Login lang={lang} />;
+      case 'dashboard':
+        return (
+          <Dashboard 
+            stats={stats}
+            progressData={progressPage}
+            activeLearners={activeLearners}
+            leaderboard={leaderboard}
+            onPageChange={(p) => refreshDashboardData(p)}
+            onStartStudy={(mode) => startSession(mode)} 
+            onStartSmartSession={() => startSession([
+              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
+              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+            ])}
+            lang={lang}
+            userId={user?.id}
+          />
+        );
+      case 'browse':
+        return (
+          <CollectionBrowser 
+            collections={collections}
+            vocabulary={[]}
+            selectedCollectionId={selectedCollectionId}
+            onSelectCollection={(id) => navigateTo(id ? `/library/${id}` : '/library')}
+            onStudyLesson={(lId) => startSession([
+              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
+              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+            ], lId)}
+            onStudyCollection={(cId) => startSession([
+              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
+              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+            ])}
+            onCreateCollection={() => setModalState({ type: 'collection' })}
+            onCreateLesson={(cId) => setModalState({ type: 'lesson', collectionId: cId })}
+            onUploadVocab={(lId) => setModalState({ type: 'upload', lessonId: lId })}
+            lang={lang}
+          />
+        );
+      case 'session-summary':
+        return (
+          <div className="max-w-xl mx-auto py-12 px-4 text-center">
+             <div className="bg-white p-12 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col items-center gap-6">
+                <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl">🎉</div>
+                <h2 className="text-3xl font-black text-slate-900">{t.complete}</h2>
+                <div className="text-center">
+                  <p className="text-3xl font-black text-indigo-600">{lastSessionResults?.correct}/{lastSessionResults?.total}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{t.correct}</p>
+                </div>
+                <div className="w-full flex flex-col gap-3">
+                  <button onClick={() => startSession([{ mode: 'multiple-choice', title: 'Review' }, { mode: 'input', title: 'Writing' }])} className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]">
+                    🚀 {t.continue_next}
+                  </button>
+                  <button onClick={() => navigateTo('/dashboard')} className="w-full bg-white border-2 border-slate-100 text-slate-600 p-5 rounded-2xl font-bold hover:bg-slate-50 transition-colors">
+                    Dashboard
+                  </button>
+                </div>
+             </div>
+          </div>
+        );
+      case 'flashcard': return <FlashcardMode lang={lang} vocabs={activeStudySet} onFinish={handleFinishStep} onCancel={() => navigateTo('/dashboard')} />;
+      case 'multiple-choice': return <MultipleChoiceMode lang={lang} vocabs={activeStudySet} allVocabs={activeStudySet} onFinish={handleFinishStep} onCancel={() => navigateTo('/dashboard')} />;
+      case 'input': return <InputMode lang={lang} vocabs={activeStudySet} onFinish={handleFinishStep} onCancel={() => navigateTo('/dashboard')} />;
+      case 'speed-learn': return <SpeedLearnMode lang={lang} vocabs={activeStudySet} allVocabs={activeStudySet} onFinish={handleFinishStep} onCancel={() => navigateTo('/dashboard')} />;
+      case 'match': return (
+        <MatchMode 
+          lang={lang} 
+          vocabs={activeStudySet} 
+          onFinish={() => navigateTo('/dashboard')} 
+          onCancel={() => navigateTo('/dashboard')} 
+          onNextSet={() => startSession('match')}
+        />
+      );
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {currentMode !== 'login' && (
+        <Header 
+          currentMode={currentMode as LearningMode} 
+          onModeChange={(m) => navigateTo(m === 'dashboard' ? '/dashboard' : (m === 'browse' ? '/library' : '/'))}
+          userStats={{ dueCount: stats.dueCount, newCount: 0 }}
+          lang={lang}
+          onLangChange={setLang}
+        />
+      )}
+      <main className="flex-grow max-w-7xl mx-auto py-6 w-full">
+        {renderContent()}
+      </main>
+      {modalState && (
+        <CollectionModal 
+          lang={lang}
+          type={modalState.type} 
+          lessonId={modalState.lessonId}
+          collectionId={modalState.collectionId}
+          onClose={() => setModalState(null)} 
+          onSaveCollection={async (name, desc, cat) => {
+            await api.saveCollection({ name, description: desc, category: cat });
+            await refreshDashboardData();
+          }}
+          onSaveLesson={async (cId, name) => {
+            await api.saveLesson(cId, name);
+            await refreshDashboardData();
+          }}
+          onSaveVocab={async (lId, items) => {
+            await api.importVocabulary(lId, items);
+            await refreshDashboardData();
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default App;
