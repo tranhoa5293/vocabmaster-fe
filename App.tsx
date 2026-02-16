@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [sessionSteps, setSessionSteps] = useState<SessionStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [activeStudySet, setActiveStudySet] = useState<Vocabulary[]>([]);
+  const [currentSessionLessonId, setCurrentSessionLessonId] = useState<string | null>(null);
   
   const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson', lessonId?: string, collectionId?: string } | null>(null);
   const [lastSessionResults, setLastSessionResults] = useState<{correct: number, total: number} | null>(null);
@@ -96,6 +97,10 @@ const App: React.FC = () => {
   const navigateTo = useCallback((path: string) => {
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
+      handleRoute();
+    } else {
+      // If path is the same, we still want to trigger the routing logic 
+      // to ensure state (like currentMode) resets to the default for that route
       handleRoute();
     }
   }, [handleRoute]);
@@ -180,6 +185,7 @@ const App: React.FC = () => {
   const startSession = async (modeOrSteps: LearningMode | SessionStep[], lessonId?: string) => {
     try {
       setCurrentMode('loading');
+      setCurrentSessionLessonId(lessonId || null);
       
       const modeString = Array.isArray(modeOrSteps) ? modeOrSteps[0].mode : modeOrSteps;
       const dueVocabs = await api.getDueVocabulary(10, lessonId, modeString);
@@ -293,7 +299,13 @@ const App: React.FC = () => {
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{t.correct}</p>
                 </div>
                 <div className="w-full flex flex-col gap-3">
-                  <button onClick={() => startSession([{ mode: 'multiple-choice', title: 'Review' }, { mode: 'input', title: 'Writing' }])} className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]">
+                  <button 
+                    onClick={() => startSession([
+                      { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' }, 
+                      { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+                    ], currentSessionLessonId || undefined)} 
+                    className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
+                  >
                     🚀 {t.continue_next}
                   </button>
                   <button onClick={() => navigateTo('/dashboard')} className="w-full bg-white border-2 border-slate-100 text-slate-600 p-5 rounded-2xl font-bold hover:bg-slate-50 transition-colors">
@@ -313,7 +325,7 @@ const App: React.FC = () => {
           vocabs={activeStudySet} 
           onFinish={() => navigateTo('/dashboard')} 
           onCancel={() => navigateTo('/dashboard')} 
-          onNextSet={() => startSession('match')}
+          onNextSet={() => startSession('match', currentSessionLessonId || undefined)}
         />
       );
       default: return null;

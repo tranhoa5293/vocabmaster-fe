@@ -11,7 +11,8 @@ const Login: React.FC<LoginProps> = ({ lang }) => {
   const t = translations[lang];
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    window.location.href = 'https://api.vocabmaster.store/oauth2/authorization/google';
+    // window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 
   return (

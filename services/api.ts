@@ -1,6 +1,6 @@
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-
+// const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'https://api.vocabmaster.store/api/v1';
 class ApiService {
   private token: string | null = localStorage.getItem('auth_token');
 
