@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [activeStudySet, setActiveStudySet] = useState<Vocabulary[]>([]);
   const [currentSessionLessonId, setCurrentSessionLessonId] = useState<string | null>(null);
+  const [currentSessionCollectionId, setCurrentSessionCollectionId] = useState<string | null>(null);
   
   const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson', lessonId?: string, collectionId?: string } | null>(null);
   const [lastSessionResults, setLastSessionResults] = useState<{correct: number, total: number} | null>(null);
@@ -46,6 +47,15 @@ const App: React.FC = () => {
     const path = window.location.pathname;
     const token = api.getToken();
     const currentUser = forceUser !== undefined ? forceUser : user;
+
+    // Reset session specific states when navigating back to main areas
+    if (path === '/' || path === '/dashboard' || path === '/library' || path.startsWith('/library/')) {
+        setSessionSteps([]);
+        setCurrentStepIndex(0);
+        setActiveStudySet([]);
+        setLastSessionResults(null);
+        // We don't necessarily clear currentSessionLessonId here because summary screen might need it
+    }
 
     // Handle Logout
     if (path === '/logout') {
@@ -182,13 +192,14 @@ const App: React.FC = () => {
     localStorage.setItem('app_lang', lang);
   }, [lang]);
 
-  const startSession = async (modeOrSteps: LearningMode | SessionStep[], lessonId?: string) => {
+  const startSession = async (modeOrSteps: LearningMode | SessionStep[], lessonId?: string, collectionId?: string) => {
     try {
       setCurrentMode('loading');
       setCurrentSessionLessonId(lessonId || null);
+      setCurrentSessionCollectionId(collectionId || null);
       
       const modeString = Array.isArray(modeOrSteps) ? modeOrSteps[0].mode : modeOrSteps;
-      const dueVocabs = await api.getDueVocabulary(10, lessonId, modeString);
+      const dueVocabs = await api.getDueVocabulary(10, lessonId, modeString, collectionId);
       
       if (dueVocabs.length === 0) {
         alert(t.no_reviews_due);
@@ -246,6 +257,12 @@ const App: React.FC = () => {
     </div>
   );
 
+  const getFullLearningSteps = (): SessionStep[] => [
+    { mode: 'flashcard', title: lang === 'vi' ? 'Ghi nhớ' : 'Memorize' },
+    { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
+    { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+  ];
+
   const renderContent = () => {
     switch (currentMode) {
       case 'login':
@@ -259,10 +276,7 @@ const App: React.FC = () => {
             leaderboard={leaderboard}
             onPageChange={(p) => refreshDashboardData(p)}
             onStartStudy={(mode) => startSession(mode)} 
-            onStartSmartSession={() => startSession([
-              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
-              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
-            ])}
+            onStartSmartSession={() => startSession(getFullLearningSteps())}
             lang={lang}
             userId={user?.id}
           />
@@ -274,14 +288,8 @@ const App: React.FC = () => {
             vocabulary={[]}
             selectedCollectionId={selectedCollectionId}
             onSelectCollection={(id) => navigateTo(id ? `/library/${id}` : '/library')}
-            onStudyLesson={(lId) => startSession([
-              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
-              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
-            ], lId)}
-            onStudyCollection={(cId) => startSession([
-              { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
-              { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
-            ])}
+            onStudyLesson={(lId) => startSession(getFullLearningSteps(), lId)}
+            onStudyCollection={(cId) => startSession(getFullLearningSteps(), undefined, cId)}
             onCreateCollection={() => setModalState({ type: 'collection' })}
             onCreateLesson={(cId) => setModalState({ type: 'lesson', collectionId: cId })}
             onUploadVocab={(lId) => setModalState({ type: 'upload', lessonId: lId })}
@@ -300,10 +308,7 @@ const App: React.FC = () => {
                 </div>
                 <div className="w-full flex flex-col gap-3">
                   <button 
-                    onClick={() => startSession([
-                      { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' }, 
-                      { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
-                    ], currentSessionLessonId || undefined)} 
+                    onClick={() => startSession(getFullLearningSteps(), currentSessionLessonId || undefined, currentSessionCollectionId || undefined)} 
                     className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
                   >
                     🚀 {t.continue_next}
@@ -325,7 +330,7 @@ const App: React.FC = () => {
           vocabs={activeStudySet} 
           onFinish={() => navigateTo('/dashboard')} 
           onCancel={() => navigateTo('/dashboard')} 
-          onNextSet={() => startSession('match', currentSessionLessonId || undefined)}
+          onNextSet={() => startSession('match', currentSessionLessonId || undefined, currentSessionCollectionId || undefined)}
         />
       );
       default: return null;

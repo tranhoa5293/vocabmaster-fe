@@ -231,8 +231,7 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                  <button 
                   onClick={(e) => toggleFavCollection(e, selectedCollectionId)}
                   className="text-xs font-bold text-rose-500 flex items-center gap-1"
-                 >
-                   {favCollections.has(selectedCollectionId) ? `❤️ ${t.fav_added}` : `🤍 ${t.fav_add}`}
+                 > {favCollections.has(selectedCollectionId) ? `❤️ ${t.fav_added}` : `🤍 ${t.fav_add}`}
                  </button>
               </div>
             </div>
@@ -265,7 +264,7 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeLessons.length > 0 ? activeLessons.map(l => {
-                const count = vocabulary.filter(v => v.lessonId === l.id).length;
+                const count = l.totalWord || 0;
                 return (
                   <div key={l.id} className="bg-white p-6 rounded-2xl border border-slate-100 flex items-center justify-between hover:border-indigo-200 hover:shadow-md transition-all group">
                     <div className="flex items-center gap-4">
@@ -313,9 +312,7 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                   <button 
                     onClick={() => onCreateLesson(selectedCollectionId)}
                     className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
-                  >
-                    {t.modal_lesson_title}
-                  </button>
+                  >\n                    {t.modal_lesson_title}\n                  </button>
                 </div>
               )}
             </div>

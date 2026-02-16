@@ -1,6 +1,6 @@
 
-// const API_BASE_URL = 'http://localhost:8080/api/v1';
-const API_BASE_URL = 'https://api.vocabmaster.store/api/v1';
+const API_BASE_URL = 'http://localhost:8080/api/v1';
+// const API_BASE_URL = 'https://api.vocabmaster.store/api/v1';
 class ApiService {
   private token: string | null = localStorage.getItem('auth_token');
 
@@ -88,10 +88,13 @@ class ApiService {
     return this.request(`/vocabulary/lessons/${lessonId}`);
   }
 
-  async getDueVocabulary(limit: number = 10, lessonId?: string, mode?: string) {
+  async getDueVocabulary(limit: number = 10, lessonId?: string, mode?: string, collectionId?: string) {
     let url = `/vocabulary/due?limit=${limit}`;
     if (lessonId) {
       url += `&lessonId=${lessonId}`;
+    }
+    if (collectionId) {
+      url += `&collectionId=${collectionId}`;
     }
     if (mode) {
       url += `&mode=${mode}`;

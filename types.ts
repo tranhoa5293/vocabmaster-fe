@@ -22,6 +22,7 @@ export interface Lesson {
   name: string;
   isFavorite?: boolean;
   activeLearners?: number;
+  totalWord?: number;
 }
 
 export interface Vocabulary {
