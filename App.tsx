@@ -15,7 +15,7 @@ import { LearningMode, UserVocabulary, Vocabulary, SessionStep, Collection, Less
 import { api } from './services/api';
 import { translations } from './utils/i18n';
 
-type AppState = LearningMode | 'session-summary' | 'loading' | 'login';
+type AppState = LearningMode | 'session-summary' | 'loading' | 'login' | 'robots' | 'sitemap';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,6 +53,16 @@ const App: React.FC = () => {
     const path = window.location.pathname;
     const token = api.getToken();
     const currentUser = forceUser !== undefined ? forceUser : user;
+
+    // Direct access to static SEO files
+    if (path === '/robots.txt') {
+      setCurrentMode('robots');
+      return;
+    }
+    if (path === '/sitemap.xml') {
+      setCurrentMode('sitemap');
+      return;
+    }
 
     if (path === '/' || path === '/dashboard' || path === '/library' || path.startsWith('/library/') || path === '/articles') {
         setSessionSteps([]);
@@ -156,8 +166,13 @@ const App: React.FC = () => {
 
     const savedToken = api.getToken();
     if (!savedToken) {
-      if (window.location.pathname === '/articles') {
+      const path = window.location.pathname;
+      if (path === '/articles') {
         setCurrentMode('articles');
+      } else if (path === '/robots.txt') {
+        setCurrentMode('robots');
+      } else if (path === '/sitemap.xml') {
+        setCurrentMode('sitemap');
       } else {
         handleRoute(null);
       }
@@ -269,6 +284,47 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (currentMode) {
+      case 'robots':
+        return (
+          <pre className="p-8 font-mono text-sm bg-white rounded-xl border border-slate-200 m-4">
+            {`User-agent: *
+Allow: /
+
+# Host
+Host: https://vocabmaster.store
+
+# Sitemaps
+Sitemap: https://vocabmaster.store/sitemap.xml`}
+          </pre>
+        );
+      case 'sitemap':
+        return (
+          <pre className="p-8 font-mono text-xs bg-white rounded-xl border border-slate-200 m-4 overflow-auto">
+            {`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://vocabmaster.store/</loc>
+    <lastmod>2024-05-20</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://vocabmaster.store/dashboard</loc>
+    <lastmod>2024-05-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://vocabmaster.store/library</loc>
+    <lastmod>2024-05-20</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://vocabmaster.store/articles</loc>
+    <lastmod>2024-05-20</lastmod>
+    <priority>0.9</priority>
+  </url>
+</urlset>`}
+          </pre>
+        );
       case 'login':
         return <Login lang={lang} />;
       case 'dashboard':
@@ -353,12 +409,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* 
-        Fix for comparison error on 'loading':
-        Removed redundant currentMode !== 'loading' check since an early return 
-        already ensures currentMode is not 'loading' at this point.
-      */}
-      {currentMode !== 'login' && (
+      {currentMode !== 'login' && currentMode !== 'robots' && currentMode !== 'sitemap' && (
         <Header 
           currentMode={currentMode as LearningMode} 
           onModeChange={(m) => navigateTo(m === 'dashboard' ? '/dashboard' : (m === 'browse' ? '/library' : (m === 'articles' ? '/articles' : '/')))}

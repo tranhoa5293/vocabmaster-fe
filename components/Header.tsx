@@ -16,7 +16,6 @@ const Header: React.FC<HeaderProps> = ({ currentMode, onModeChange, userStats, l
 
   const isDashboard = currentMode === 'dashboard' || (!['dashboard', 'browse', 'articles'].includes(currentMode));
   const isBrowse = currentMode === 'browse';
-  const isArticles = currentMode === 'articles';
 
   return (
     <>
@@ -46,12 +45,6 @@ const Header: React.FC<HeaderProps> = ({ currentMode, onModeChange, userStats, l
               className={`text-sm font-bold transition-colors ${isBrowse ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-600'}`}
             >
               {t.library}
-            </button>
-            <button 
-              onClick={() => onModeChange('articles')}
-              className={`text-sm font-bold transition-colors ${isArticles ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-600'}`}
-            >
-              {t.articles}
             </button>
           </nav>
 
@@ -87,10 +80,8 @@ const Header: React.FC<HeaderProps> = ({ currentMode, onModeChange, userStats, l
       <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-[60]">
         <nav className="bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-2xl p-1.5 flex items-center relative h-14">
           <div 
-            className={`absolute top-1.5 bottom-1.5 w-[calc(33.33%-6px)] bg-indigo-600 rounded-xl transition-all duration-300 ease-out shadow-lg shadow-indigo-200 ${
-              isDashboard ? 'left-1.5' : 
-              isBrowse ? 'left-[calc(33.33%+1.5px)]' : 
-              'left-[calc(66.66%+1.5px)]'
+            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-indigo-600 rounded-xl transition-all duration-300 ease-out shadow-lg shadow-indigo-200 ${
+              isDashboard ? 'left-1.5' : 'left-[calc(50%+1.5px)]'
             }`}
           />
           
@@ -107,17 +98,8 @@ const Header: React.FC<HeaderProps> = ({ currentMode, onModeChange, userStats, l
           >
             <span className="text-[10px] font-black uppercase tracking-wider">{t.library}</span>
           </button>
-
-          <button 
-            onClick={() => onModeChange('articles')}
-            className={`relative z-10 flex-1 flex flex-col items-center justify-center h-full transition-colors duration-300 ${isArticles ? 'text-white' : 'text-slate-400 font-bold'}`}
-          >
-            <span className="text-[10px] font-black uppercase tracking-wider">{t.articles}</span>
-          </button>
         </nav>
       </div>
-      
-      <div className="md:hidden h-20" aria-hidden="true" />
     </>
   );
 };
