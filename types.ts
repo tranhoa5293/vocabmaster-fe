@@ -46,7 +46,7 @@ export interface UserVocabulary {
   totalWrong: number;
 }
 
-export type LearningMode = 'flashcard' | 'match' | 'multiple-choice' | 'input' | 'speed-learn' | 'dashboard' | 'browse';
+export type LearningMode = 'flashcard' | 'match' | 'multiple-choice' | 'input' | 'speed-learn' | 'dashboard' | 'browse' | 'articles';
 
 export interface SessionStep {
   mode: LearningMode;

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Host
+Host: https://vocabmaster.store
+
+# Sitemaps
+Sitemap: https://vocabmaster.store/sitemap.xml

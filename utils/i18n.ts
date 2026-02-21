@@ -4,6 +4,7 @@ export const translations = {
     // Global & Header
     dashboard: "Tổng quan",
     library: "Thư viện",
+    articles: "Kiến thức",
     flashcards: "Thẻ ghi nhớ",
     due_today: "Cần học hôm nay",
     words: "từ",
@@ -44,6 +45,32 @@ export const translations = {
     progress_empty: "Chưa có dữ liệu tiến độ. Bắt đầu học để theo dõi!",
     prev_page: "Trang trước",
     next_page: "Trang sau",
+    active_learners_title: "Đang học cùng bạn",
+    no_recent_activity: "Chưa có hoạt động mới",
+    join_group_coming_soon: "+ Tham gia nhóm học (Sắp ra mắt)",
+    weekly_leaderboard: "Bảng xếp hạng tuần",
+    you: "Bạn",
+    you_bracket: "(Bạn)",
+
+    // SEO Articles
+    seo_title: "Cẩm Nang Học Tiếng Anh Hiệu Quả",
+    seo_subtitle: "Khám phá các phương pháp khoa học để làm chủ từ vựng và đạt điểm cao trong các kỳ thi.",
+    art_srs_title: "SRS là gì? Tại sao nó là vũ khí tối thượng?",
+    art_srs_p1: "Spaced Repetition System (SRS) hay Hệ thống lặp lại ngắt quãng là phương pháp học tập dựa trên sự giãn cách thời gian giữa các lần ôn tập. Thay vì nhồi nhét, SRS nhắc nhở bạn ôn lại từ vựng ngay tại thời điểm bạn sắp quên nó nhất.",
+    art_srs_p2: "Thuật toán SM-2 mà VocabMaster sử dụng giúp tối ưu hóa trí nhớ dài hạn, giúp bạn học ít hơn nhưng nhớ lâu hơn gấp 10 lần so với cách học truyền thống.",
+    art_toeic_title: "Cách tốt nhất để học từ vựng TOEIC",
+    art_toeic_p1: "Để đạt điểm cao TOEIC, bạn không cần học tất cả mọi từ. Hãy tập trung vào các chủ đề cốt lõi như: Văn phòng, Hợp đồng, Tài chính, và Nhân sự. VocabMaster đã chuẩn bị sẵn các bộ sưu tập chuyên biệt này.",
+    art_toeic_p2: "Sử dụng chế độ 'Gõ từ vựng' để đảm bảo bạn không chỉ nhận diện được mặt chữ mà còn có thể sử dụng chúng trong thực tế.",
+    art_1000_title: "1000 từ vựng tiếng Anh thông dụng nhất",
+    art_1000_p1: "Theo thống kê, 1000 từ vựng thông dụng chiếm tới 75% các đoạn hội thoại hàng ngày. Việc nắm vững nhóm từ này là bước đệm quan trọng nhất để đạt mức giao tiếp trôi chảy.",
+    art_daily_title: "Luyện tập từ vựng hàng ngày",
+    art_daily_p1: "Tính nhất quán quan trọng hơn cường độ. Chỉ cần 15 phút mỗi ngày với VocabMaster, bạn sẽ thấy sự khác biệt rõ rệt sau 1 tháng. Hãy thiết lập thói quen học vào một khung giờ cố định.",
+
+    // Categories
+    cat_general: "Cơ bản",
+    cat_academic: "Học thuật",
+    cat_business: "Công việc",
+    cat_travel: "Du lịch",
 
     // Library & Browser
     search_placeholder: "Tìm kiếm bộ sưu tập...",
@@ -58,6 +85,7 @@ export const translations = {
     fav_add: "Thêm yêu thích",
     library_desc: "Khám phá và quản lý lộ trình học của bạn.",
     no_results: "Không tìm thấy kết quả nào phù hợp.",
+    new_lesson: "Bài học mới",
 
     // Learning Sessions
     cancel_session: "Hủy phiên học",
@@ -70,6 +98,8 @@ export const translations = {
     type_meaning: "Gõ nghĩa của từ này:",
     check_enter: "Kiểm tra (Enter)",
     label_meaning: "Nghĩa tiếng Việt",
+    label_vocab: "Từ vựng",
+    label_meaning_only: "Ý nghĩa",
     tip_enter: "Mẹo: Nhấn Enter để gửi đáp án",
     exact_match: "Chính xác 100%!",
     fuzzy_match: "Gần đúng! Chú ý chính tả.",
@@ -82,6 +112,13 @@ export const translations = {
     question_match: "Nghĩa này có đúng không?",
     yes: "ĐÚNG",
     no: "SAI",
+    memorize: "Ghi nhớ",
+    recognition: "Nhận diện",
+    writing: "Viết từ",
+    click_to_flip: "Nhấn vào thẻ để lật",
+    replay_set: "Luyện lại bộ này",
+    arrow_left: "Mũi tên trái",
+    arrow_right: "Mũi tên phải",
 
     // Session Summary
     complete: "Hoàn thành!",
@@ -102,12 +139,17 @@ export const translations = {
     label_list: "Danh sách từ vựng",
     format_support: "Định dạng hỗ trợ:",
     format_tip: "VD: Persistence - /pəˈsɪstəns/ - Sự kiên trì; Sự bền bỉ",
-    import_error: "Không thể phân tích dữ liệu. Vui lòng kiểm tra lại định dạng."
+    import_error: "Không thể phân tích dữ liệu. Vui lòng kiểm tra lại định dạng.",
+    empty_lesson_tip: "Tạo bài học trống, bạn có thể nhập từ vựng vào sau.",
+    placeholder_collection_name: "VD: Từ vựng TOEIC cơ bản",
+    placeholder_lesson_name: "VD: Bài 1: Nơi làm việc",
+    placeholder_import: "TỪ VỰNG (loại từ) - /phát âm/ - nghĩa..."
   },
   en: {
     // Global & Header
     dashboard: "Dashboard",
     library: "Library",
+    articles: "Articles",
     flashcards: "Flashcards",
     due_today: "Due Today",
     words: "words",
@@ -148,6 +190,32 @@ export const translations = {
     progress_empty: "No progress data yet. Start learning to track!",
     prev_page: "Previous page",
     next_page: "Next page",
+    active_learners_title: "Active Learners",
+    no_recent_activity: "No recent activity",
+    join_group_coming_soon: "+ Join Study Group (Coming soon)",
+    weekly_leaderboard: "Weekly Leaderboard",
+    you: "You",
+    you_bracket: "(You)",
+
+    // SEO Articles
+    seo_title: "English Mastery Resources",
+    seo_subtitle: "Discover scientific methods to master vocabulary and excel in examinations.",
+    art_srs_title: "What is SRS? Why is it the ultimate weapon?",
+    art_srs_p1: "Spaced Repetition System (SRS) is a learning technique that involves increasing intervals of time between subsequent review of previously learned material. Instead of cramming, SRS reminds you to review words exactly when you are about to forget them.",
+    art_srs_p2: "The SM-2 algorithm used by VocabMaster optimizes long-term retention, allowing you to learn less but remember 10x more than traditional methods.",
+    art_toeic_title: "Best way to learn TOEIC vocabulary",
+    art_toeic_p1: "To score high on the TOEIC, you don't need to learn every word. Focus on core topics like Office, Contracts, Finance, and Personnel. VocabMaster has curated specialized collections for these.",
+    art_toeic_p2: "Use 'Input Mode' to ensure you can not only recognize words but also recall them correctly for writing and speaking.",
+    art_1000_title: "1000 Most Common English Words",
+    art_1000_p1: "Statistically, the top 1000 common words cover up to 75% of daily conversations. Mastering this core set is the most important step towards fluency.",
+    art_daily_title: "Daily English vocabulary practice",
+    art_daily_p1: "Consistency is more important than intensity. Just 15 minutes a day with VocabMaster will make a visible difference in a month. Set a habit to study at the same time every day.",
+
+    // Categories
+    cat_general: "General",
+    cat_academic: "Academic",
+    cat_business: "Business",
+    cat_travel: "Travel",
 
     // Library & Browser
     search_placeholder: "Search collections...",
@@ -162,6 +230,7 @@ export const translations = {
     fav_add: "Add to Fav",
     library_desc: "Discover and manage your learning path.",
     no_results: "No matching results found.",
+    new_lesson: "New Lesson",
 
     // Learning Sessions
     cancel_session: "Cancel Session",
@@ -174,6 +243,8 @@ export const translations = {
     type_meaning: "Type the meaning:",
     check_enter: "Check (Enter)",
     label_meaning: "Meaning",
+    label_vocab: "Vocabulary",
+    label_meaning_only: "Meaning",
     tip_enter: "Tip: Press Enter to submit",
     exact_match: "100% Correct!",
     fuzzy_match: "Almost! Check spelling.",
@@ -186,6 +257,13 @@ export const translations = {
     question_match: "Is this match correct?",
     yes: "YES",
     no: "NO",
+    memorize: "Memorize",
+    recognition: "Recognition",
+    writing: "Writing",
+    click_to_flip: "Click card to flip",
+    replay_set: "Replay this set",
+    arrow_left: "Left Arrow",
+    arrow_right: "Right Arrow",
 
     // Session Summary
     complete: "Complete!",
@@ -206,6 +284,10 @@ export const translations = {
     label_list: "Vocabulary List",
     format_support: "Supported Formats:",
     format_tip: "Ex: Persistence - /pəˈsɪstəns/ - Persistence; Endurance",
-    import_error: "Could not parse data. Please check your format."
+    import_error: "Could not parse data. Please check your format.",
+    empty_lesson_tip: "Create empty lesson, you can import vocabulary later.",
+    placeholder_collection_name: "Ex: TOEIC Essentials",
+    placeholder_lesson_name: "Ex: Unit 1: Workplace",
+    placeholder_import: "WORD (pos) - /pronunciation/ - meaning..."
   }
 };

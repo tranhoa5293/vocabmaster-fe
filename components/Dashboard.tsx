@@ -101,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              {lang === 'vi' ? 'Đang học cùng bạn' : 'Active Learners'}
+              {t.active_learners_title}
             </h3>
             <div className="space-y-4">
               {activeLearners.slice(0, 5).map((act, i) => (
@@ -115,19 +115,19 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               ))}
               {activeLearners.length === 0 && (
-                <p className="text-xs text-slate-400 italic text-center py-4">{lang === 'vi' ? 'Chưa có hoạt động mới' : 'No recent activity'}</p>
+                <p className="text-xs text-slate-400 italic text-center py-4">{t.no_recent_activity}</p>
               )}
             </div>
             <button 
               disabled
               className="w-full mt-6 py-3 rounded-xl border-2 border-dashed border-slate-100 text-slate-300 text-xs font-bold cursor-not-allowed"
             >
-              {lang === 'vi' ? '+ Tham gia nhóm học (Sắp ra mắt)' : '+ Join Study Group (Coming soon)'}
+              {t.join_group_coming_soon}
             </button>
           </div>
 
           <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
-             <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">{lang === 'vi' ? 'Bảng xếp hạng tuần' : 'Weekly Leaderboard'}</h3>
+             <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">{t.weekly_leaderboard}</h3>
              <div className="space-y-3">
                 {leaderboard.topUsers.slice(0, 3).map((p, i) => {
                   const rank = p.rank || (i + 1);
@@ -136,7 +136,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div key={p.userId} className={`flex items-center justify-between p-1 rounded-lg ${isCurrent ? 'bg-white/50 ring-1 ring-indigo-200 shadow-sm' : ''}`}>
                       <div className="flex items-center gap-3">
                         <span className={`font-black text-sm ${getRankColor(rank)}`}>#{rank}</span>
-                        <span className="text-xs font-bold text-slate-700">{p.name} {isCurrent && (lang === 'vi' ? '(Bạn)' : '(You)')}</span>
+                        <span className="text-xs font-bold text-slate-700">{p.name} {isCurrent && t.you_bracket}</span>
                       </div>
                       <span className="text-[10px] font-black text-indigo-600">{p.score} pts</span>
                     </div>
@@ -152,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <span className="font-black text-sm text-slate-500">
                           #{leaderboard.userRank || '?'}
                         </span>
-                        <span className="text-xs font-bold text-slate-900">{lang === 'vi' ? 'Bạn' : 'You'}</span>
+                        <span className="text-xs font-bold text-slate-900">{t.you}</span>
                       </div>
                       <span className="text-[10px] font-black text-indigo-600">{leaderboard.userScore} pts</span>
                     </div>

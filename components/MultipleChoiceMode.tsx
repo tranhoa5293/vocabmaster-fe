@@ -54,23 +54,25 @@ const MultipleChoiceMode: React.FC<MultipleChoiceModeProps> = ({ vocabs, allVoca
   if (!currentVocab) return null;
 
   return (
-    <div className="h-[calc(100vh-12rem)] max-w-4xl mx-auto flex flex-col px-4">
+    <div className="min-h-[calc(100vh-14rem)] max-w-4xl mx-auto flex flex-col px-4 pb-10 sm:pb-4">
       {/* Header Info */}
       <div className="flex justify-between items-center py-4">
-        <button onClick={onCancel} className="text-slate-400 hover:text-rose-500 font-bold text-sm transition-colors">
-          {t.esc_exit}
+        <button onClick={onCancel} className="text-slate-400 hover:text-rose-500 font-bold text-xs uppercase tracking-widest transition-colors">
+          &larr; {t.esc_exit}
         </button>
-        <div className="bg-slate-100 px-4 py-1 rounded-full text-slate-600 font-bold text-xs uppercase tracking-widest">
+        <div className="bg-slate-100 px-4 py-1 rounded-full text-slate-600 font-bold text-[10px] uppercase tracking-widest">
           {currentIndex + 1} / {vocabs.length}
         </div>
       </div>
 
       {/* Question Section */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
-        <span className="text-indigo-500 text-xs font-black uppercase tracking-widest mb-2">{t.pick_meaning}</span>
-        <h2 className="text-6xl font-black text-slate-900 mb-4 tracking-tight">{currentVocab.word}</h2>
+      <div className="flex-1 flex flex-col items-center justify-center text-center py-6 sm:py-10">
+        <span className="text-indigo-500 text-[10px] font-black uppercase tracking-widest mb-3">{t.pick_meaning}</span>
+        <h2 className="text-4xl sm:text-6xl font-black text-slate-900 mb-4 tracking-tight break-words max-w-full">
+          {currentVocab.word}
+        </h2>
         <div className="flex items-center gap-3">
-          <p className="text-2xl text-slate-400 font-medium italic">{currentVocab.pronunciation}</p>
+          <p className="text-lg sm:text-2xl text-slate-400 font-medium italic opacity-70 break-all">{currentVocab.pronunciation}</p>
           <button 
             onClick={() => playTTS(currentVocab.word)}
             className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all shadow-sm"
@@ -82,9 +84,9 @@ const MultipleChoiceMode: React.FC<MultipleChoiceModeProps> = ({ vocabs, allVoca
       </div>
 
       {/* Options Grid */}
-      <div className="grid grid-cols-2 gap-4 pb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-auto">
         {options.map((option, idx) => {
-          let stateStyles = "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:shadow-md";
+          let stateStyles = "border-slate-200 bg-white text-slate-700 hover:border-indigo-300";
           const meanings = option.split(/[;,]/);
 
           if (selectedOption) {
@@ -102,15 +104,15 @@ const MultipleChoiceMode: React.FC<MultipleChoiceModeProps> = ({ vocabs, allVoca
               key={idx}
               disabled={!!selectedOption}
               onClick={() => handleSelect(option)}
-              className={`relative h-32 p-6 rounded-3xl border-2 text-left transition-all duration-200 flex flex-col justify-center gap-1 overflow-hidden ${stateStyles}`}
+              className={`relative min-h-[5rem] sm:h-32 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-left transition-all duration-200 flex flex-col justify-center gap-1 overflow-hidden shadow-sm ${stateStyles}`}
             >
-              <div className="flex flex-col">
-                <span className="text-xl font-bold leading-tight line-clamp-2">{meanings[0].trim()}</span>
+              <div className="flex flex-col pr-6">
+                <span className="text-base sm:text-xl font-bold leading-tight line-clamp-2 break-words">{meanings[0].trim()}</span>
                 {meanings.length > 1 && (
-                  <span className="text-sm opacity-60 font-medium line-clamp-1 italic">{meanings.slice(1).join('; ').trim()}</span>
+                  <span className="text-[10px] sm:text-sm opacity-60 font-medium line-clamp-1 italic">{meanings.slice(1).join('; ').trim()}</span>
                 )}
               </div>
-              <span className="absolute top-4 right-4 text-xs font-black opacity-20 uppercase tracking-tighter">
+              <span className="absolute top-2 right-3 sm:top-4 sm:right-4 text-[10px] font-black opacity-20 uppercase tracking-tighter">
                 {['A', 'B', 'C', 'D'][idx]}
               </span>
             </button>

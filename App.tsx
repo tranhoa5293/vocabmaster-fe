@@ -10,6 +10,7 @@ import MatchMode from './components/MatchMode';
 import SpeedLearnMode from './components/SpeedLearnMode';
 import CollectionBrowser from './components/CollectionBrowser';
 import CollectionModal from './components/CollectionModal';
+import SEOContent from './components/SEOContent';
 import { LearningMode, UserVocabulary, Vocabulary, SessionStep, Collection, Lesson, User, Language, ActiveLearner, LeaderboardData } from './types';
 import { api } from './services/api';
 import { translations } from './utils/i18n';
@@ -21,7 +22,11 @@ const App: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<AppState>('loading');
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [lang, setLang] = useState<Language>(() => {
-    return (localStorage.getItem('app_lang') as Language) || 'vi';
+    try {
+      return (localStorage.getItem('app_lang') as Language) || 'vi';
+    } catch (e) {
+      return 'vi';
+    }
   });
   
   const [stats, setStats] = useState({ totalLearning: 0, dueCount: 0, masteredCount: 0 });
@@ -36,28 +41,26 @@ const App: React.FC = () => {
   const [currentSessionLessonId, setCurrentSessionLessonId] = useState<string | null>(null);
   const [currentSessionCollectionId, setCurrentSessionCollectionId] = useState<string | null>(null);
   
+  const [sessionBlueprint, setSessionBlueprint] = useState<LearningMode | SessionStep[] | null>(null);
+  
   const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson', lessonId?: string, collectionId?: string } | null>(null);
   const [lastSessionResults, setLastSessionResults] = useState<{correct: number, total: number} | null>(null);
 
-  const t = translations[lang];
+  const t = translations[lang] || translations['en'];
   const isInitialized = useRef(false);
 
-  // Routing Logic - Purely handles state synchronization based on URL
   const handleRoute = useCallback((forceUser?: User | null) => {
     const path = window.location.pathname;
     const token = api.getToken();
     const currentUser = forceUser !== undefined ? forceUser : user;
 
-    // Reset session specific states when navigating back to main areas
-    if (path === '/' || path === '/dashboard' || path === '/library' || path.startsWith('/library/')) {
+    if (path === '/' || path === '/dashboard' || path === '/library' || path.startsWith('/library/') || path === '/articles') {
         setSessionSteps([]);
         setCurrentStepIndex(0);
         setActiveStudySet([]);
         setLastSessionResults(null);
-        // We don't necessarily clear currentSessionLessonId here because summary screen might need it
     }
 
-    // Handle Logout
     if (path === '/logout') {
       api.logout();
       setUser(null);
@@ -66,7 +69,6 @@ const App: React.FC = () => {
       return;
     }
 
-    // Handle Login route
     if (path === '/login') {
       if (token && currentUser) {
         window.history.replaceState({}, '', '/dashboard');
@@ -78,8 +80,7 @@ const App: React.FC = () => {
       return;
     }
 
-    // Auth Guard: If no token and not on login, go to login
-    if (!token && path !== '/login') {
+    if (!token && path !== '/login' && path !== '/articles') {
       window.history.replaceState({}, '', '/login');
       setCurrentMode('login');
       return;
@@ -91,13 +92,15 @@ const App: React.FC = () => {
     } else if (path === '/library') {
       setCurrentMode('browse');
       setSelectedCollectionId(null);
+    } else if (path === '/articles') {
+      setCurrentMode('articles');
+      setSelectedCollectionId(null);
     } else if (path.startsWith('/library/')) {
       const parts = path.split('/');
       const id = parts[2];
       setCurrentMode('browse');
       setSelectedCollectionId(id || null);
     } else {
-      // Redirect to home if route is unknown
       window.history.replaceState({}, '', '/dashboard');
       setCurrentMode('dashboard');
       setSelectedCollectionId(null);
@@ -109,8 +112,6 @@ const App: React.FC = () => {
       window.history.pushState({}, '', path);
       handleRoute();
     } else {
-      // If path is the same, we still want to trigger the routing logic 
-      // to ensure state (like currentMode) resets to the default for that route
       handleRoute();
     }
   }, [handleRoute]);
@@ -118,16 +119,16 @@ const App: React.FC = () => {
   const refreshDashboardData = async (page: number = 0) => {
     try {
       const [studyStats, cols] = await Promise.all([
-        api.getStudyStats(),
-        api.getCollections()
+        api.getStudyStats().catch(() => ({ totalLearning: 0, dueCount: 0, masteredCount: 0 })),
+        api.getCollections().catch(() => [])
       ]);
       setStats(studyStats);
       setCollections(cols);
 
       const [progress, learners, lbData] = await Promise.all([
-        api.getUserProgress(page, 10),
-        api.getActiveLearners(),
-        api.getLeaderboard('weekly')
+        api.getUserProgress(page, 10).catch(() => ({ content: [], totalPages: 0 })),
+        api.getActiveLearners().catch(() => []),
+        api.getLeaderboard('weekly').catch(() => ({ topUsers: [], userScore: 0 }))
       ]);
       setProgressPage({
         items: progress.content || progress.items || [],
@@ -155,7 +156,11 @@ const App: React.FC = () => {
 
     const savedToken = api.getToken();
     if (!savedToken) {
-      handleRoute(null);
+      if (window.location.pathname === '/articles') {
+        setCurrentMode('articles');
+      } else {
+        handleRoute(null);
+      }
       return;
     }
 
@@ -176,12 +181,10 @@ const App: React.FC = () => {
     }
   };
 
-  // Run initial app setup once
   useEffect(() => {
     initApp();
   }, []);
 
-  // Handle URL changes (browser back/forward)
   useEffect(() => {
     const onPopState = () => handleRoute();
     window.addEventListener('popstate', onPopState);
@@ -197,6 +200,7 @@ const App: React.FC = () => {
       setCurrentMode('loading');
       setCurrentSessionLessonId(lessonId || null);
       setCurrentSessionCollectionId(collectionId || null);
+      setSessionBlueprint(modeOrSteps); 
       
       const modeString = Array.isArray(modeOrSteps) ? modeOrSteps[0].mode : modeOrSteps;
       const dueVocabs = await api.getDueVocabulary(10, lessonId, modeString, collectionId);
@@ -258,9 +262,9 @@ const App: React.FC = () => {
   );
 
   const getFullLearningSteps = (): SessionStep[] => [
-    { mode: 'flashcard', title: lang === 'vi' ? 'Ghi nhớ' : 'Memorize' },
-    { mode: 'multiple-choice', title: lang === 'vi' ? 'Nhận diện' : 'Recognition' },
-    { mode: 'input', title: lang === 'vi' ? 'Viết từ' : 'Writing' }
+    { mode: 'flashcard', title: t.memorize },
+    { mode: 'multiple-choice', title: t.recognition },
+    { mode: 'input', title: t.writing }
   ];
 
   const renderContent = () => {
@@ -296,6 +300,13 @@ const App: React.FC = () => {
             lang={lang}
           />
         );
+      case 'articles':
+        return (
+          <SEOContent 
+            lang={lang} 
+            onStartStudy={() => navigateTo('/dashboard')}
+          />
+        );
       case 'session-summary':
         return (
           <div className="max-w-xl mx-auto py-12 px-4 text-center">
@@ -308,7 +319,10 @@ const App: React.FC = () => {
                 </div>
                 <div className="w-full flex flex-col gap-3">
                   <button 
-                    onClick={() => startSession(getFullLearningSteps(), currentSessionLessonId || undefined, currentSessionCollectionId || undefined)} 
+                    onClick={() => {
+                      const nextBlueprint = sessionBlueprint || (currentSessionCollectionId ? getFullLearningSteps() : 'flashcard');
+                      startSession(nextBlueprint, currentSessionLessonId || undefined, currentSessionCollectionId || undefined);
+                    }} 
                     className="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
                   >
                     🚀 {t.continue_next}
@@ -339,10 +353,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* 
+        Fix for comparison error on 'loading':
+        Removed redundant currentMode !== 'loading' check since an early return 
+        already ensures currentMode is not 'loading' at this point.
+      */}
       {currentMode !== 'login' && (
         <Header 
           currentMode={currentMode as LearningMode} 
-          onModeChange={(m) => navigateTo(m === 'dashboard' ? '/dashboard' : (m === 'browse' ? '/library' : '/'))}
+          onModeChange={(m) => navigateTo(m === 'dashboard' ? '/dashboard' : (m === 'browse' ? '/library' : (m === 'articles' ? '/articles' : '/')))}
           userStats={{ dueCount: stats.dueCount, newCount: 0 }}
           lang={lang}
           onLangChange={setLang}
