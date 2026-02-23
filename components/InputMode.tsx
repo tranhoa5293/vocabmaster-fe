@@ -92,10 +92,10 @@ const InputMode: React.FC<InputModeProps> = ({ vocabs, onFinish, onCancel, lang 
 
       <div className="w-full bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-3xl shadow-sm border border-slate-100 text-center mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4">
         <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3 block">{t.type_meaning}</span>
-        <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight break-words">{currentVocab?.word}</h2>
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight break-words">{currentVocab?.word}</h2>
         <div className="mt-4 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-slate-400 text-base sm:text-lg italic font-medium opacity-70 break-all">{currentVocab?.pronunciation}</p>
+            <p className="text-slate-400 text-sm sm:text-base italic font-medium opacity-70 break-all">{currentVocab?.pronunciation}</p>
             <button 
               onClick={() => playTTS(currentVocab.word)}
               className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all shadow-sm border border-slate-200"
@@ -117,7 +117,7 @@ const InputMode: React.FC<InputModeProps> = ({ vocabs, onFinish, onCancel, lang 
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder={t.label_meaning + "..."}
-            className={`w-full p-5 sm:p-6 text-lg sm:text-xl rounded-2xl border-2 transition-all outline-none shadow-sm ${
+            className={`w-full p-5 sm:p-6 text-lg rounded-2xl border-2 transition-all outline-none shadow-sm ${
                 showFeedback 
                 ? (feedbackType === 'wrong' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-emerald-500 bg-emerald-50 text-emerald-700') 
                 : 'border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50'

@@ -52,7 +52,7 @@ const FlashcardMode: React.FC<FlashcardModeProps> = ({ vocabs, onFinish, onCance
         {/* Front */}
         <div className="absolute inset-0 bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col items-center justify-center p-6 sm:p-8 [backface-visibility:hidden]">
           <span className="text-indigo-500 text-[10px] font-black uppercase tracking-widest mb-4">{t.label_vocab}</span>
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 text-center leading-tight tracking-tight break-words max-w-full">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 text-center leading-tight tracking-tight break-words max-w-full">
             {currentVocab.word}
           </h2>
           <div className="mt-8 flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
@@ -67,7 +67,7 @@ const FlashcardMode: React.FC<FlashcardModeProps> = ({ vocabs, onFinish, onCance
           
           <div className="flex flex-col items-center gap-2 mb-6 w-full overflow-y-auto max-h-40 scrollbar-hide">
             {meanings.map((m, idx) => (
-              <h2 key={idx} className="text-xl sm:text-3xl font-bold text-center leading-tight tracking-tight break-words w-full">{m}</h2>
+              <h2 key={idx} className="text-xl sm:text-2xl font-bold text-center leading-tight tracking-tight break-words w-full">{m}</h2>
             ))}
           </div>
 
@@ -77,7 +77,7 @@ const FlashcardMode: React.FC<FlashcardModeProps> = ({ vocabs, onFinish, onCance
             <div className="flex flex-col items-center">
               <p className="text-indigo-200 text-[8px] font-black uppercase tracking-tighter mb-1 opacity-60">Pronunciation</p>
               <div className="flex items-center justify-center gap-2">
-                <p className="text-sm sm:text-lg font-medium italic opacity-90">{currentVocab.pronunciation}</p>
+                <p className="text-sm sm:text-base font-medium italic opacity-90">{currentVocab.pronunciation}</p>
                 <button 
                   onClick={(e) => { e.stopPropagation(); playTTS(currentVocab.word); }}
                   className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors shadow-sm"

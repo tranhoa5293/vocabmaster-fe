@@ -82,59 +82,58 @@ const SpeedLearnMode: React.FC<SpeedLearnModeProps> = ({ vocabs, allVocabs, onFi
   if (!currentVocab) return null;
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-4 flex flex-col items-center">
-      <div className="w-full flex justify-between items-center mb-8">
-        <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 font-medium">{t.cancel_session}</button>
-        <div className="px-4 py-1 bg-indigo-100 text-indigo-700 rounded-full font-bold text-sm">
+    <div className="max-w-xl mx-auto py-8 px-4 flex flex-col items-center">
+      <div className="w-full flex justify-between items-center mb-6">
+        <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 font-bold text-[10px] uppercase tracking-widest transition-colors">{t.cancel_session}</button>
+        <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-black text-[10px] uppercase tracking-wider">
           {t.streak}: {sessionResults.filter(r => r.score === SRSScore.GOOD).length}
         </div>
-        <div className="text-slate-500 font-bold text-sm">
+        <div className="text-slate-500 font-bold text-[10px] bg-slate-100 px-3 py-1 rounded-full">
           {currentIndex + 1} / {vocabs.length}
         </div>
       </div>
 
-      {/* Timer Bar */}
-      <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-12">
+      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-10">
         <div 
           className={`h-full transition-all duration-100 ${timeLeft < 1 ? 'bg-rose-500' : 'bg-indigo-500'}`}
           style={{ width: `${(timeLeft / TIMER_SECONDS) * 100}%` }}
         ></div>
       </div>
 
-      <div className={`w-full bg-white p-10 rounded-3xl shadow-xl border-4 transition-all duration-300 text-center flex flex-col items-center gap-6 ${
-        feedback === 'correct' ? 'border-emerald-500 scale-105' : 
-        feedback === 'wrong' ? 'border-rose-500 scale-95' : 'border-slate-50'
+      <div className={`w-full bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-xl border-4 transition-all duration-300 text-center flex flex-col items-center gap-6 ${
+        feedback === 'correct' ? 'border-emerald-500 scale-[1.02]' : 
+        feedback === 'wrong' ? 'border-rose-500 scale-[0.98]' : 'border-slate-50 shadow-slate-200/50'
       }`}>
-        <div>
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">{t.question_match}</span>
-          <h2 className="text-5xl font-black text-slate-900 mb-2">{currentVocab.word}</h2>
+        <div className="space-y-2">
+          <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] block">{t.question_match}</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight break-words">{currentVocab.word}</h2>
         </div>
         
-        <div className="w-12 h-1 bg-slate-100"></div>
+        <div className="w-12 h-1 bg-slate-100 rounded-full"></div>
 
-        <h3 className="text-3xl font-bold text-indigo-600">{displayMeaning}</h3>
+        <h3 className="text-xl sm:text-2xl font-bold text-indigo-600 leading-tight">{displayMeaning}</h3>
       </div>
 
-      <div className="mt-12 w-full grid grid-cols-2 gap-6">
+      <div className="mt-10 w-full grid grid-cols-2 gap-4 sm:gap-6">
         <button 
           onClick={() => handleAnswer(false)}
           disabled={feedback !== null}
-          className="bg-white border-2 border-slate-200 text-slate-700 p-8 rounded-2xl font-black text-2xl hover:bg-rose-50 hover:border-rose-200 transition-all flex flex-col items-center gap-2"
+          className="bg-white border-2 border-slate-100 text-slate-700 p-6 sm:p-8 rounded-3xl font-black text-xl sm:text-2xl hover:bg-rose-50 hover:border-rose-200 transition-all flex flex-col items-center gap-2 shadow-sm active:scale-95"
         >
           <span>{t.no}</span>
-          <span className="text-[10px] font-medium text-slate-400">{lang === 'vi' ? 'Mũi tên trái' : 'Left Arrow'}</span>
+          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{t.arrow_left}</span>
         </button>
         <button 
           onClick={() => handleAnswer(true)}
           disabled={feedback !== null}
-          className="bg-indigo-600 text-white p-8 rounded-2xl font-black text-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex flex-col items-center gap-2"
+          className="bg-indigo-600 text-white p-6 sm:p-8 rounded-3xl font-black text-xl sm:text-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex flex-col items-center gap-2 active:scale-95"
         >
           <span>{t.yes}</span>
-          <span className="text-[10px] font-medium text-indigo-200">{lang === 'vi' ? 'Mũi tên phải' : 'Right Arrow'}</span>
+          <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">{t.arrow_right}</span>
         </button>
       </div>
 
-      <p className="mt-8 text-slate-400 text-sm font-medium animate-pulse">{t.react_fast}</p>
+      <p className="mt-8 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">{t.react_fast}</p>
     </div>
   );
 };

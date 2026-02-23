@@ -68,14 +68,14 @@ const MultipleChoiceMode: React.FC<MultipleChoiceModeProps> = ({ vocabs, allVoca
       {/* Question Section */}
       <div className="flex-1 flex flex-col items-center justify-center text-center py-6 sm:py-10">
         <span className="text-indigo-500 text-[10px] font-black uppercase tracking-widest mb-3">{t.pick_meaning}</span>
-        <h2 className="text-4xl sm:text-6xl font-black text-slate-900 mb-4 tracking-tight break-words max-w-full">
+        <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4 tracking-tight break-words max-w-full">
           {currentVocab.word}
         </h2>
         <div className="flex items-center gap-3">
-          <p className="text-lg sm:text-2xl text-slate-400 font-medium italic opacity-70 break-all">{currentVocab.pronunciation}</p>
+          <p className="text-base sm:text-xl text-slate-400 font-medium italic opacity-70 break-all">{currentVocab.pronunciation}</p>
           <button 
             onClick={() => playTTS(currentVocab.word)}
-            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all shadow-sm"
+            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all shadow-sm"
             title="Listen"
           >
             🔊
@@ -107,9 +107,9 @@ const MultipleChoiceMode: React.FC<MultipleChoiceModeProps> = ({ vocabs, allVoca
               className={`relative min-h-[5rem] sm:h-32 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-left transition-all duration-200 flex flex-col justify-center gap-1 overflow-hidden shadow-sm ${stateStyles}`}
             >
               <div className="flex flex-col pr-6">
-                <span className="text-base sm:text-xl font-bold leading-tight line-clamp-2 break-words">{meanings[0].trim()}</span>
+                <span className="text-base sm:text-lg font-bold leading-tight line-clamp-2 break-words">{meanings[0].trim()}</span>
                 {meanings.length > 1 && (
-                  <span className="text-[10px] sm:text-sm opacity-60 font-medium line-clamp-1 italic">{meanings.slice(1).join('; ').trim()}</span>
+                  <span className="text-[10px] sm:text-xs opacity-60 font-medium line-clamp-1 italic">{meanings.slice(1).join('; ').trim()}</span>
                 )}
               </div>
               <span className="absolute top-2 right-3 sm:top-4 sm:right-4 text-[10px] font-black opacity-20 uppercase tracking-tighter">
