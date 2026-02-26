@@ -8,6 +8,7 @@ export interface User {
 
 export interface Collection {
   id: string;
+  creatorId?: string;
   name: string;
   description: string;
   category: string;
