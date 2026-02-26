@@ -10,6 +10,7 @@ import MatchMode from './components/MatchMode';
 import SpeedLearnMode from './components/SpeedLearnMode';
 import CollectionBrowser from './components/CollectionBrowser';
 import CollectionModal from './components/CollectionModal';
+import StudyModeModal from './components/StudyModeModal';
 import SEOContent from './components/SEOContent';
 import { LearningMode, UserVocabulary, Vocabulary, SessionStep, Collection, Lesson, User, Language, ActiveLearner, LeaderboardData } from './types';
 import { api } from './services/api';
@@ -43,7 +44,7 @@ const App: React.FC = () => {
   
   const [sessionBlueprint, setSessionBlueprint] = useState<LearningMode | SessionStep[] | null>(null);
   
-  const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson', lessonId?: string, collectionId?: string } | null>(null);
+  const [modalState, setModalState] = useState<{ type: 'collection' | 'upload' | 'lesson' | 'study-selector', lessonId?: string, collectionId?: string } | null>(null);
   const [lastSessionResults, setLastSessionResults] = useState<{correct: number, total: number} | null>(null);
 
   const t = translations[lang] || translations['en'];
@@ -348,12 +349,13 @@ Sitemap: https://vocabmaster.store/sitemap.xml`}
             vocabulary={[]}
             selectedCollectionId={selectedCollectionId}
             onSelectCollection={(id) => navigateTo(id ? `/library/${id}` : '/library')}
-            onStudyLesson={(lId) => startSession(getFullLearningSteps(), lId)}
-            onStudyCollection={(cId) => startSession(getFullLearningSteps(), undefined, cId)}
+            onStudyLesson={(lId, cId) => setModalState({ type: 'study-selector', lessonId: lId, collectionId: cId })}
+            onStudyCollection={(cId) => setModalState({ type: 'study-selector', collectionId: cId })}
             onCreateCollection={() => setModalState({ type: 'collection' })}
             onCreateLesson={(cId) => setModalState({ type: 'lesson', collectionId: cId })}
             onUploadVocab={(lId) => setModalState({ type: 'upload', lessonId: lId })}
             lang={lang}
+            userId={user?.id}
           />
         );
       case 'articles':
@@ -421,10 +423,24 @@ Sitemap: https://vocabmaster.store/sitemap.xml`}
       <main className="flex-grow max-w-7xl mx-auto py-6 w-full">
         {renderContent()}
       </main>
-      {modalState && (
+      {modalState?.type === 'study-selector' && (
+        <StudyModeModal
+          lang={lang}
+          collectionId={modalState.collectionId}
+          lessonId={modalState.lessonId}
+          onClose={() => setModalState(null)}
+          onSelect={(blueprint) => {
+            const lid = modalState.lessonId;
+            const cid = modalState.collectionId;
+            setModalState(null);
+            startSession(blueprint, lid, cid);
+          }}
+        />
+      )}
+      {modalState && modalState.type !== 'study-selector' && (
         <CollectionModal 
           lang={lang}
-          type={modalState.type} 
+          type={modalState.type as any} 
           lessonId={modalState.lessonId}
           collectionId={modalState.collectionId}
           onClose={() => setModalState(null)} 

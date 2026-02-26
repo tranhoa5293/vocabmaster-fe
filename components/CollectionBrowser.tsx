@@ -9,16 +9,17 @@ interface CollectionBrowserProps {
   vocabulary: Vocabulary[];
   selectedCollectionId: string | null;
   onSelectCollection: (id: string | null) => void;
-  onStudyLesson: (lessonId: string) => void;
+  onStudyLesson: (lessonId: string, collectionId: string) => void;
   onStudyCollection: (collectionId: string) => void;
   onCreateCollection: () => void;
   onCreateLesson: (collectionId: string) => void;
   onUploadVocab: (lessonId: string) => void;
   lang: Language;
+  userId?: string;
 }
 
 const CollectionBrowser: React.FC<CollectionBrowserProps> = ({ 
-  collections, vocabulary, selectedCollectionId, onSelectCollection, onStudyLesson, onStudyCollection, onCreateCollection, onCreateLesson, onUploadVocab, lang 
+  collections, vocabulary, selectedCollectionId, onSelectCollection, onStudyLesson, onStudyCollection, onCreateCollection, onCreateLesson, onUploadVocab, lang, userId 
 }) => {
   const t = translations[lang];
   const [activeLessons, setActiveLessons] = useState<Lesson[]>([]);
@@ -26,17 +27,16 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
-  // Local state for UI responsiveness
   const [favCollections, setFavCollections] = useState<Set<string>>(new Set());
   const [favLessons, setFavLessons] = useState<Set<string>>(new Set());
 
-  // Initialize favorites from props if available
   useEffect(() => {
     const collFavs = new Set(collections.filter(c => c.isFavorite).map(c => c.id));
     setFavCollections(collFavs);
   }, [collections]);
 
   const activeCollection = useMemo(() => collections.find(c => c.id === selectedCollectionId), [collections, selectedCollectionId]);
+  const isOwner = useMemo(() => activeCollection?.creatorId === userId, [activeCollection, userId]);
 
   const filteredCollections = useMemo(() => {
     return collections.filter(c => {
@@ -66,7 +66,6 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
     }
   }, []);
 
-  // Sync lessons when external selection changes
   useEffect(() => {
     if (selectedCollectionId) {
       fetchLessons(selectedCollectionId);
@@ -117,6 +116,11 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
         return next;
       });
     }
+  };
+
+  const getLocalizedCategory = (cat: string) => {
+    const key = `cat_${cat.toLowerCase()}`;
+    return (t as any)[key] || cat;
   };
 
   return (
@@ -179,7 +183,9 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
               </div>
               
               <div className="p-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">{c.category}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">
+                  {getLocalizedCategory(c.category)}
+                </span>
                 <h3 className="text-lg font-bold text-slate-900 mt-2">{c.name}</h3>
                 <p className="text-slate-500 text-sm mt-1 line-clamp-2 leading-relaxed">{c.description}</p>
                 
@@ -231,7 +237,8 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                  <button 
                   onClick={(e) => toggleFavCollection(e, selectedCollectionId)}
                   className="text-xs font-bold text-rose-500 flex items-center gap-1"
-                 > {favCollections.has(selectedCollectionId) ? `❤️ ${t.fav_added}` : `🤍 ${t.fav_add}`}
+                 >
+                   {favCollections.has(selectedCollectionId) ? `❤️ ${t.fav_added}` : `🤍 ${t.fav_add}`}
                  </button>
               </div>
             </div>
@@ -248,12 +255,14 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
               {t.lessons}
               <span className="bg-slate-100 text-slate-400 text-[10px] px-2 py-0.5 rounded-full">{activeLessons.length}</span>
             </h3>
-            <button 
-              onClick={() => onCreateLesson(selectedCollectionId)}
-              className="text-xs font-bold bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-md whitespace-nowrap"
-            >
-              ➕ {t.modal_lesson_title}
-            </button>
+            {isOwner && (
+              <button 
+                onClick={() => onCreateLesson(selectedCollectionId)}
+                className="text-xs font-bold bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-md whitespace-nowrap"
+              >
+                ➕ {t.modal_lesson_title}
+              </button>
+            )}
           </div>
           
           {isLoadingLessons ? (
@@ -278,7 +287,7 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                         <h4 className="font-bold text-slate-900">{l.name}</h4>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                            {count > 0 ? `${count} ${t.words}` : 'New Lesson'}
+                            {count > 0 ? `${count} ${t.words}` : t.new_lesson}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-slate-200"></span>
                           <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest flex items-center gap-1">
@@ -289,15 +298,17 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                       </div>
                     </div>
                     <div className="flex gap-2">
-                       <button 
-                        onClick={() => onUploadVocab(l.id)}
-                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                        title={t.modal_upload_title}
-                      >
-                        ➕
-                      </button>
+                       {isOwner && (
+                         <button 
+                          onClick={() => onUploadVocab(l.id)}
+                          className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                          title={t.modal_upload_title}
+                        >
+                          ➕
+                        </button>
+                       )}
                       <button 
-                        onClick={() => onStudyLesson(l.id)}
+                        onClick={() => onStudyLesson(l.id, l.collectionId)}
                         className="px-5 py-2.5 rounded-xl font-bold text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
                       >
                         {t.start_now}
@@ -309,10 +320,14 @@ const CollectionBrowser: React.FC<CollectionBrowserProps> = ({
                 <div className="col-span-full py-20 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-[2rem] bg-white flex flex-col items-center gap-4">
                   <div className="text-4xl">📭</div>
                   <p className="font-bold">{t.no_lessons}</p>
-                  <button 
-                    onClick={() => onCreateLesson(selectedCollectionId)}
-                    className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
-                  >\n                    {t.modal_lesson_title}\n                  </button>
+                  {isOwner && (
+                    <button 
+                      onClick={() => onCreateLesson(selectedCollectionId)}
+                      className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                    >
+                      {t.modal_lesson_title}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
