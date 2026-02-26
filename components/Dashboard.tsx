@@ -47,6 +47,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
+  const topUsers = leaderboard.topUsers.slice(0, 10);
+  const isUserInTopList = topUsers.some(u => u.userId === userId);
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
       {/* Top Stats */}
@@ -128,31 +131,31 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
              <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">{t.weekly_leaderboard}</h3>
-             <div className="space-y-3">
-                {leaderboard.topUsers.slice(0, 3).map((p, i) => {
+             <div className="space-y-2.5">
+                {topUsers.map((p, i) => {
                   const rank = p.rank || (i + 1);
                   const isCurrent = userId === p.userId;
                   return (
-                    <div key={p.userId} className={`flex items-center justify-between p-1 rounded-lg ${isCurrent ? 'bg-white/50 ring-1 ring-indigo-200 shadow-sm' : ''}`}>
+                    <div key={p.userId} className={`flex items-center justify-between p-1.5 rounded-xl transition-all ${isCurrent ? 'bg-white shadow-sm ring-1 ring-indigo-200' : 'hover:bg-white/30'}`}>
                       <div className="flex items-center gap-3">
-                        <span className={`font-black text-sm ${getRankColor(rank)}`}>#{rank}</span>
-                        <span className="text-xs font-bold text-slate-700">{p.name} {isCurrent && t.you_bracket}</span>
+                        <span className={`font-black text-xs w-6 text-center ${getRankColor(rank)}`}>#{rank}</span>
+                        <span className={`text-xs font-bold ${isCurrent ? 'text-indigo-600' : 'text-slate-700'}`}>{p.name} {isCurrent && t.you_bracket}</span>
                       </div>
                       <span className="text-[10px] font-black text-indigo-600">{p.score} pts</span>
                     </div>
                   );
                 })}
                 
-                {/* Display Current User if not in Top 3 list provided by backend */}
-                {(!leaderboard.topUsers.some(u => u.userId === userId)) && (
+                {/* Display Current User if not in Top 10 list */}
+                {(!isUserInTopList) && (
                   <>
-                    <div className="h-px bg-indigo-100 mx-2"></div>
-                    <div className="flex items-center justify-between p-1 rounded-lg bg-white/80 ring-1 ring-indigo-200 shadow-sm">
+                    <div className="h-px bg-indigo-100/50 mx-2 my-1"></div>
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-white shadow-sm ring-1 ring-indigo-200 animate-in slide-in-from-bottom-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-sm text-slate-500">
+                        <span className="font-black text-xs text-slate-500 w-6 text-center">
                           #{leaderboard.userRank || '?'}
                         </span>
-                        <span className="text-xs font-bold text-slate-900">{t.you}</span>
+                        <span className="text-xs font-bold text-indigo-600">{t.you}</span>
                       </div>
                       <span className="text-[10px] font-black text-indigo-600">{leaderboard.userScore} pts</span>
                     </div>
